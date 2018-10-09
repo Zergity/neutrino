@@ -3,8 +3,8 @@ import:
 - package: github.com/coreos/bbolt
   version: 4f5275f4ebbf6fe7cb772de987fa96ee674460a7
 - package: github.com/btcsuite/btcd
-  repo: https://github.com/Zergity/btcd.git
-  version: ndr
+  repo: https://gitlab.com/Zergity/ndrd.git
+  version: master
   subpackages:
   - blockchain
   - btcec
@@ -22,8 +22,8 @@ import:
   - gcs/builder
   - hdkeychain
 - package: github.com/btcsuite/btcwallet
-  repo: https://github.com/Zergity/btcwallet.git
-  version: ndr
+  repo: https://gitlab.com/Zergity/ndrw.git
+  version: master
   subpackages:
   - waddrmgr
   - wallet/txauthor
