@@ -4,7 +4,7 @@ import:
   version: 4f5275f4ebbf6fe7cb772de987fa96ee674460a7
 - package: github.com/btcsuite/btcd
   repo: https://gitlab.com/Zergity/ndrd.git
-  version: master
+  version: mvp
   subpackages:
   - blockchain
   - btcec
@@ -23,7 +23,7 @@ import:
   - hdkeychain
 - package: github.com/btcsuite/btcwallet
   repo: https://gitlab.com/Zergity/ndrw.git
-  version: master
+  version: mvp
   subpackages:
   - waddrmgr
   - wallet/txauthor
