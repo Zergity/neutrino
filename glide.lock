@@ -1,10 +1,11 @@
-hash: c768a65ce52ee67c224b78e222c3779a104365b0b27c78639ca732f9013d71dc
-updated: 2018-08-10T17:26:48.351802932-07:00
+hash: 78c4adf92b76a0c458df2f0b75a66733bbd192683288b04f3a39308be96ab896
+updated: 2018-11-15T22:51:34.5820229+07:00
 imports:
 - name: github.com/aead/siphash
-  version: e404fcfc888570cadd1610538e2dbc89f66af814
+  version: 83563a290f60225eb120d724600b9690c3fb536f
 - name: github.com/btcsuite/btcd
-  version: f899737d7f2764dc13e4d01ff00108ec58f766a9
+  version: da45e45c23a50e8a2372134360de3a5ff01f03d3
+  repo: https://gitlab.com/Zergity/ndrd.git
   subpackages:
   - addrmgr
   - blockchain
@@ -22,7 +23,8 @@ imports:
 - name: github.com/btcsuite/btclog
   version: 84c8d2346e9fc8c7b947e243b9c24e6df9fd206a
 - name: github.com/btcsuite/btcutil
-  version: ab6388e0c60ae4834a1f57511e20c17b5f78be4b
+  version: 11c347b78dc725c8d41b11014cf82d8e68242cec
+  repo: github.com/Zergity/btcutil
   subpackages:
   - base58
   - bech32
@@ -30,7 +32,8 @@ imports:
   - gcs/builder
   - hdkeychain
 - name: github.com/btcsuite/btcwallet
-  version: 64b5b448f5e6853a2d870f388504a7807bc951f1
+  version: 24cc3b4cd94e955369e14e1aa62dddb612cae9c0
+  repo: https://gitlab.com/Zergity/ndrw.git
   subpackages:
   - internal/helpers
   - internal/zero
@@ -62,27 +65,27 @@ imports:
 - name: github.com/coreos/bbolt
   version: 4f5275f4ebbf6fe7cb772de987fa96ee674460a7
 - name: github.com/davecgh/go-spew
-  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
+  version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
   subpackages:
   - spew
 - name: github.com/golang/protobuf
-  version: 70b3af33377e7aa25ae42977bed93cc6b90f0373
+  version: ddf22928ea3c56eb4292a0adbbf5001b1e8e7d0d
   subpackages:
   - proto
 - name: github.com/jessevdk/go-flags
   version: 1679536dcc895411a9f5848d9a0250be7856448c
 - name: github.com/kkdai/bstream
-  version: f391b8402d23024e7c0f624b31267a89998fca95
+  version: f71540b9dfdcfe64dbf2818e9b66423c6aafcacd
 - name: golang.org/x/crypto
-  version: 9419663f5a44be8b34ca85f08abc5fe1be11f8a3
+  version: 0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb
   subpackages:
   - ripemd160
 - name: golang.org/x/net
-  version: d0887baf81f4598189d4e12a37c6da86f0bba4d0
+  version: 49bb7cea24b1df9410e1712aa6433dae904ff66a
   subpackages:
   - context
 - name: golang.org/x/sys
-  version: 1b2967e3c290b7c545b3db0deeda16e9be4f98a2
+  version: fa43e7bc11baaae89f3f902b2b4d832b68234844
   subpackages:
   - unix
 - name: google.golang.org/grpc
