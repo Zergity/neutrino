@@ -1064,3 +1064,63 @@ func (s *ChainService) SendTransaction(tx *wire.MsgTx, options ...QueryOption) e
 
 	return err
 }
+
+// SendOrder sends a Order to all peers. It returns an error if any
+// peer rejects the Order.
+//
+// TODO: Better privacy by sending to only one random peer and watching
+// propagation, requires better peer selection support in query API.
+func (s *ChainService) SendOrder(tx *wire.MsgOdr, options ...QueryOption) error {
+
+	var err error
+
+	// Starting with the set of default options, we'll apply any specified
+	// functional options to the query so that we can check what inv type
+	// to use. Broadcast the inv to all peers, responding to any getdata
+	// messages for the Order.
+	qo := defaultQueryOptions()
+	qo.applyQueryOptions(options...)
+	invType := wire.InvTypeWitnessOdr
+	if qo.encoding == wire.BaseEncoding {
+		invType = wire.InvTypeOdr
+	}
+
+	// Create an inv.
+	orderHash := tx.TxHash()
+	inv := wire.NewMsgInv()
+	inv.AddInvVect(wire.NewInvVect(invType, &orderHash))
+
+	// Send the peer query and listen for getdata.
+	s.queryAllPeers(
+		inv,
+		func(sp *ServerPeer, resp wire.Message, quit chan<- struct{},
+			peerQuit chan<- struct{}) {
+			switch response := resp.(type) {
+			case *wire.MsgGetData:
+				for _, vec := range response.InvList {
+					if vec.Hash == orderHash {
+						sp.QueueMessageWithEncoding(
+							tx, nil, qo.encoding)
+					}
+				}
+			case *wire.MsgReject:
+				if response.Hash == orderHash {
+					err = fmt.Errorf("Order %s "+
+						"rejected by %s: %s",
+						tx.TxHash(), sp.Addr(),
+						response.Reason)
+					log.Errorf(err.Error())
+					close(quit)
+				}
+			}
+		},
+		// Default to 500ms timeout. Default for queryAllPeers is a
+		// single try.
+		append(
+			[]QueryOption{Timeout(time.Millisecond * 500)},
+			options...,
+		)...,
+	)
+
+	return err
+}
