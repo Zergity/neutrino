@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/endurio/ndrd/chaincfg/chainhash"
+	"github.com/endurio/ndrd/wire"
 )
 
 // appendRaw appends a new raw header to the end of the flat file.
