@@ -15,11 +15,11 @@ import (
 	"github.com/endurio/ndrd/blockchain"
 	"github.com/endurio/ndrd/chaincfg"
 	"github.com/endurio/ndrd/chaincfg/chainhash"
+	"github.com/endurio/ndrd/chainutil"
+	"github.com/endurio/ndrd/chainutil/gcs"
+	"github.com/endurio/ndrd/chainutil/gcs/builder"
 	"github.com/endurio/ndrd/txscript"
 	"github.com/endurio/ndrd/wire"
-	"github.com/endurio/ndrd/util"
-	"github.com/endurio/ndrd/util/gcs"
-	"github.com/endurio/ndrd/util/gcs/builder"
 	"github.com/endurio/neutrino/headerfs"
 	"github.com/endurio/neutrino/headerlist"
 )
@@ -83,7 +83,7 @@ type donePeerMsg struct {
 // txMsg packages a bitcoin tx message and the peer it came from together
 // so the block handler has access to that information.
 type txMsg struct {
-	tx   *util.Tx
+	tx   *chainutil.Tx
 	peer *ServerPeer
 }
 
@@ -2358,7 +2358,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	if err != nil {
 		return err
 	}
-	stubBlock := util.NewBlock(&wire.MsgBlock{
+	stubBlock := chainutil.NewBlock(&wire.MsgBlock{
 		Header: *blockHeader,
 	})
 	err = blockchain.CheckProofOfWork(stubBlock,

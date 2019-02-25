@@ -16,10 +16,10 @@ import (
 	"github.com/endurio/ndrd/blockchain"
 	"github.com/endurio/ndrd/chaincfg"
 	"github.com/endurio/ndrd/chaincfg/chainhash"
+	"github.com/endurio/ndrd/chainutil"
 	"github.com/endurio/ndrd/connmgr"
 	"github.com/endurio/ndrd/peer"
 	"github.com/endurio/ndrd/wire"
-	"github.com/endurio/ndrd/util"
 	"github.com/endurio/ndrw/waddrmgr"
 	"github.com/endurio/ndrw/walletdb"
 	"github.com/endurio/neutrino/cache/lru"
@@ -339,9 +339,9 @@ func (sp *ServerPeer) OnHeaders(p *peer.Peer, msg *wire.MsgHeaders) {
 // disconnected if an invalid fee filter value is provided.
 func (sp *ServerPeer) OnFeeFilter(_ *peer.Peer, msg *wire.MsgFeeFilter) {
 	// Check that the passed minimum fee is a valid amount.
-	if msg.MinFee < 0 || msg.MinFee > util.MaxSatoshi {
+	if msg.MinFee < 0 || msg.MinFee > chainutil.MaxSatoshi {
 		log.Debugf("Peer %v sent an invalid feefilter '%v' -- "+
-			"disconnecting", sp, util.Amount(msg.MinFee))
+			"disconnecting", sp, chainutil.Amount(msg.MinFee))
 		sp.Disconnect()
 		return
 	}

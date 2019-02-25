@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/endurio/ndrd/chaincfg/chainhash"
-	"github.com/endurio/ndrd/util"
+	"github.com/endurio/ndrd/chainutil"
 	"github.com/endurio/ndrw/waddrmgr"
 )
 
@@ -90,7 +90,7 @@ type UtxoScannerConfig struct {
 	BlockFilterMatches func(ro *rescanOptions, blockHash *chainhash.Hash) (bool, error)
 
 	// GetBlock fetches a block from the p2p network.
-	GetBlock func(chainhash.Hash, ...QueryOption) (*util.Block, error)
+	GetBlock func(chainhash.Hash, ...QueryOption) (*chainutil.Block, error)
 }
 
 // UtxoScanner batches calls to GetUtxo so that a single scan can search for

@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/endurio/ndrd/btcec"
-	"github.com/endurio/ndrd/btcjson"
+	"github.com/endurio/ndrd/chainec"
+	"github.com/endurio/ndrd/chainjson"
 	"github.com/endurio/ndrd/chaincfg"
 	"github.com/endurio/ndrd/chaincfg/chainhash"
 	"github.com/endurio/ndrd/integration/rpctest"
@@ -23,8 +23,8 @@ import (
 	"github.com/endurio/ndrd/txscript"
 	"github.com/endurio/ndrd/wire"
 	"github.com/btcsuite/btclog"
-	"github.com/endurio/ndrd/util"
-	"github.com/endurio/ndrd/util/gcs/builder"
+	"github.com/endurio/ndrd/chainutil"
+	"github.com/endurio/ndrd/chainutil/gcs/builder"
 	"github.com/endurio/ndrw/waddrmgr"
 	"github.com/endurio/ndrw/wallet/txauthor"
 	"github.com/endurio/ndrw/walletdb"
@@ -172,26 +172,26 @@ var (
 	// transactions we're interested in that are in the blockchain we're
 	// following as signalled by OnBlockConnected, OnBlockDisconnected,
 	// OnRecvTx, and OnRedeemingTx.
-	ourKnownTxsByBlock = make(map[chainhash.Hash][]*util.Tx)
+	ourKnownTxsByBlock = make(map[chainhash.Hash][]*chainutil.Tx)
 
 	// ourKnownTxsByFilteredBlock lets the rescan goroutine keep track of
 	// transactions we're interested in that are in the blockchain we're
 	// following as signalled by OnFilteredBlockConnected and
 	// OnFilteredBlockDisconnected.
-	ourKnownTxsByFilteredBlock = make(map[chainhash.Hash][]*util.Tx)
+	ourKnownTxsByFilteredBlock = make(map[chainhash.Hash][]*chainutil.Tx)
 )
 
 // secSource is an implementation of btcwallet/txauthor/SecretsSource that
 // stores WitnessPubKeyHash addresses.
 type secSource struct {
-	keys    map[string]*btcec.PrivateKey
+	keys    map[string]*chainec.PrivateKey
 	scripts map[string]*[]byte
 	params  *chaincfg.Params
 }
 
-func (s *secSource) add(privKey *btcec.PrivateKey) (util.Address, error) {
-	pubKeyHash := util.Hash160(privKey.PubKey().SerializeCompressed())
-	addr, err := util.NewAddressWitnessPubKeyHash(pubKeyHash, s.params)
+func (s *secSource) add(privKey *chainec.PrivateKey) (chainutil.Address, error) {
+	pubKeyHash := chainutil.Hash160(privKey.PubKey().SerializeCompressed())
+	addr, err := chainutil.NewAddressWitnessPubKeyHash(pubKeyHash, s.params)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (s *secSource) add(privKey *btcec.PrivateKey) (util.Address, error) {
 }
 
 // GetKey is required by the txscript.KeyDB interface
-func (s *secSource) GetKey(addr util.Address) (*btcec.PrivateKey, bool,
+func (s *secSource) GetKey(addr chainutil.Address) (*chainec.PrivateKey, bool,
 	error) {
 	privKey, ok := s.keys[addr.String()]
 	if !ok {
@@ -223,7 +223,7 @@ func (s *secSource) GetKey(addr util.Address) (*btcec.PrivateKey, bool,
 }
 
 // GetScript is required by the txscript.ScriptDB interface
-func (s *secSource) GetScript(addr util.Address) ([]byte, error) {
+func (s *secSource) GetScript(addr chainutil.Address) ([]byte, error) {
 	script, ok := s.scripts[addr.String()]
 	if !ok {
 		return nil, fmt.Errorf("No script for address %s", addr)
@@ -238,7 +238,7 @@ func (s *secSource) ChainParams() *chaincfg.Params {
 
 func newSecSource(params *chaincfg.Params) *secSource {
 	return &secSource{
-		keys:    make(map[string]*btcec.PrivateKey),
+		keys:    make(map[string]*chainec.PrivateKey),
 		scripts: make(map[string]*[]byte),
 		params:  params,
 	}
@@ -296,7 +296,7 @@ var (
 	rescan                    *neutrino.Rescan
 	startBlock                waddrmgr.BlockStamp
 	secSrc                    *secSource
-	addr1, addr2, addr3       util.Address
+	addr1, addr2, addr3       chainutil.Address
 	script1, script2, script3 []byte
 	tx1, tx2, tx3             *wire.MsgTx
 	ourOutPoint               wire.OutPoint
@@ -309,7 +309,7 @@ func testRescan(harness *neutrinoHarness, t *testing.T) {
 	// this to test rescans and notifications.
 	modParams := harness.svc.ChainParams()
 	secSrc = newSecSource(&modParams)
-	privKey1, err := btcec.NewPrivateKey(btcec.S256())
+	privKey1, err := chainec.NewPrivateKey(chainec.S256())
 	if err != nil {
 		t.Fatalf("Couldn't generate private key: %s", err)
 	}
@@ -336,7 +336,7 @@ func testRescan(harness *neutrinoHarness, t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to send raw transaction to node: %s", err)
 	}
-	privKey2, err := btcec.NewPrivateKey(btcec.S256())
+	privKey2, err := chainec.NewPrivateKey(chainec.S256())
 	if err != nil {
 		t.Fatalf("Couldn't generate private key: %s", err)
 	}
@@ -445,9 +445,9 @@ func testStartRescan(harness *neutrinoHarness, t *testing.T) {
 	}
 
 	// Spend the outputs we sent ourselves over two blocks.
-	inSrc := func(tx wire.MsgTx) func(target util.Amount) (
-		total util.Amount, inputs []*wire.TxIn,
-		inputValues []util.Amount, scripts [][]byte, err error) {
+	inSrc := func(tx wire.MsgTx) func(target chainutil.Amount) (
+		total chainutil.Amount, inputs []*wire.TxIn,
+		inputValues []chainutil.Amount, scripts [][]byte, err error) {
 		ourIndex := 1 << 30 // Should work on 32-bit systems
 		for i, txo := range tx.TxOut {
 			if bytes.Equal(txo.PkScript, script1) ||
@@ -455,8 +455,8 @@ func testStartRescan(harness *neutrinoHarness, t *testing.T) {
 				ourIndex = i
 			}
 		}
-		return func(target util.Amount) (total util.Amount,
-			inputs []*wire.TxIn, inputValues []util.Amount,
+		return func(target chainutil.Amount) (total chainutil.Amount,
+			inputs []*wire.TxIn, inputValues []chainutil.Amount,
 			scripts [][]byte, err error) {
 			if ourIndex == 1<<30 {
 				err = fmt.Errorf("Couldn't find our address " +
@@ -472,8 +472,8 @@ func testStartRescan(harness *neutrinoHarness, t *testing.T) {
 					},
 				},
 			}
-			inputValues = []util.Amount{
-				util.Amount(tx.TxOut[ourIndex].Value)}
+			inputValues = []chainutil.Amount{
+				chainutil.Amount(tx.TxOut[ourIndex].Value)}
 			scripts = [][]byte{tx.TxOut[ourIndex].PkScript}
 			err = nil
 			return
@@ -483,7 +483,7 @@ func testStartRescan(harness *neutrinoHarness, t *testing.T) {
 	// Create another address to send to so we don't trip the rescan with
 	// the old address and we can test monitoring both OutPoint usage and
 	// receipt by addresses.
-	privKey3, err := btcec.NewPrivateKey(btcec.S256())
+	privKey3, err := chainec.NewPrivateKey(chainec.S256())
 	if err != nil {
 		t.Fatalf("Couldn't generate private key: %s", err)
 	}
@@ -600,7 +600,7 @@ func testStartRescan(harness *neutrinoHarness, t *testing.T) {
 	// Generate a block with a nonstandard coinbase to generate a basic
 	// filter with 0 entries.
 	_, err = harness.h1.GenerateAndSubmitBlockWithCustomCoinbaseOutputs(
-		[]*util.Tx{}, rpctest.BlockVersion, time.Time{},
+		[]*chainutil.Tx{}, rpctest.BlockVersion, time.Time{},
 		[]wire.TxOut{{
 			Value:    0,
 			PkScript: []byte{},
@@ -990,7 +990,7 @@ func TestNeutrinoSync(t *testing.T) {
 	rpcLogger.SetLevel(logLevel)
 	rpcclient.UseLogger(rpcLogger)
 
-	// Create a btcd SimNet node and generate 800 blocks
+	// Create a ndrd SimNet node and generate 800 blocks
 	h1, err := rpctest.New(
 		&chaincfg.SimNetParams, nil, []string{"--txindex"},
 	)
@@ -1007,7 +1007,7 @@ func TestNeutrinoSync(t *testing.T) {
 		t.Fatalf("Couldn't generate blocks: %s", err)
 	}
 
-	// Create a second btcd SimNet node
+	// Create a second ndrd SimNet node
 	h2, err := rpctest.New(
 		&chaincfg.SimNetParams, nil, []string{"--txindex"},
 	)
@@ -1020,7 +1020,7 @@ func TestNeutrinoSync(t *testing.T) {
 		t.Fatalf("Couldn't set up harness: %s", err)
 	}
 
-	// Create a third btcd SimNet node and generate 1200 blocks
+	// Create a third ndrd SimNet node and generate 1200 blocks
 	h3, err := rpctest.New(
 		&chaincfg.SimNetParams, nil, []string{"--txindex"},
 	)
@@ -1325,7 +1325,7 @@ func waitForSync(t *testing.T, svc *neutrino.ChainService,
 // from the rescan. At the end, the log should match one we precomputed based
 // on the flow of the test. The rescan starts at the genesis block and the
 // notifications continue until the `quit` channel is closed.
-func startRescan(t *testing.T, svc *neutrino.ChainService, addr util.Address,
+func startRescan(t *testing.T, svc *neutrino.ChainService, addr chainutil.Address,
 	startBlock *waddrmgr.BlockStamp, quit <-chan struct{}) (
 	*neutrino.Rescan, <-chan error) {
 	rescan := svc.NewRescan(
@@ -1353,8 +1353,8 @@ func startRescan(t *testing.T, svc *neutrino.ChainService, addr util.Address,
 					curBlockHeight = height - 1
 					rescanMtx.Unlock()
 				},
-				OnRecvTx: func(tx *util.Tx,
-					details *btcjson.BlockDetails) {
+				OnRecvTx: func(tx *chainutil.Tx,
+					details *chainjson.BlockDetails) {
 					rescanMtx.Lock()
 					hash, err := chainhash.
 						NewHashFromStr(
@@ -1373,8 +1373,8 @@ func startRescan(t *testing.T, svc *neutrino.ChainService, addr util.Address,
 						[]byte("rv")...)
 					rescanMtx.Unlock()
 				},
-				OnRedeemingTx: func(tx *util.Tx,
-					details *btcjson.BlockDetails) {
+				OnRedeemingTx: func(tx *chainutil.Tx,
+					details *chainjson.BlockDetails) {
 					rescanMtx.Lock()
 					hash, err := chainhash.
 						NewHashFromStr(
@@ -1396,7 +1396,7 @@ func startRescan(t *testing.T, svc *neutrino.ChainService, addr util.Address,
 				OnFilteredBlockConnected: func(
 					height int32,
 					header *wire.BlockHeader,
-					relevantTxs []*util.Tx) {
+					relevantTxs []*chainutil.Tx) {
 					rescanMtx.Lock()
 					ourKnownTxsByFilteredBlock[header.BlockHash()] =
 						relevantTxs

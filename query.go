@@ -8,13 +8,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/endurio/ndrd/blockchain"
 	"github.com/endurio/ndrd/chaincfg/chainhash"
+	"github.com/endurio/ndrd/chainutil"
+	"github.com/endurio/ndrd/chainutil/gcs"
+	"github.com/endurio/ndrd/chainutil/gcs/builder"
 	"github.com/endurio/ndrd/wire"
-	"github.com/endurio/ndrd/util"
-	"github.com/endurio/ndrd/util/gcs"
-	"github.com/endurio/ndrd/util/gcs/builder"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/endurio/neutrino/cache"
 	"github.com/endurio/neutrino/filterdb"
 )
@@ -885,7 +885,7 @@ func (s *ChainService) GetCFilter(blockHash chainhash.Hash,
 // time, until one answers. If the block is found in the cache, it will be
 // returned immediately.
 func (s *ChainService) GetBlock(blockHash chainhash.Hash,
-	options ...QueryOption) (*util.Block, error) {
+	options ...QueryOption) (*chainutil.Block, error) {
 
 	// Fetch the corresponding block header from the database. If this
 	// isn't found, then we don't have the header for this block so we
@@ -926,7 +926,7 @@ func (s *ChainService) GetBlock(blockHash chainhash.Hash,
 	// which is always called single-threadedly. We don't check the block
 	// until after the query is finished, so we can just write to it
 	// naively.
-	var foundBlock *util.Block
+	var foundBlock *chainutil.Block
 	s.queryPeers(
 		// Send a wire.GetDataMsg
 		getData,
@@ -949,11 +949,11 @@ func (s *ChainService) GetBlock(blockHash chainhash.Hash,
 				if response.BlockHash() != blockHash {
 					return
 				}
-				block := util.NewBlock(response)
+				block := chainutil.NewBlock(response)
 
 				// Only set height if btcutil hasn't
 				// automagically put one in.
-				if block.Height() == util.BlockHeightUnknown {
+				if block.Height() == chainutil.BlockHeightUnknown {
 					block.SetHeight(int32(height))
 				}
 
@@ -966,7 +966,7 @@ func (s *ChainService) GetBlock(blockHash chainhash.Hash,
 					// by the time we get here, it's been
 					// checked during header
 					// synchronization
-					s.chainParams.PowLimit,
+					&s.chainParams,
 					s.timeSource,
 				); err != nil {
 					log.Warnf("Invalid block for %s "+

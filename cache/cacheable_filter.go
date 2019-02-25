@@ -1,6 +1,6 @@
 package cache
 
-import "github.com/endurio/ndrd/util/gcs"
+import "github.com/endurio/ndrd/chainutil/gcs"
 
 // CacheableFilter is a wrapper around Filter type which provides a Size method
 // used by the cache to target certain memory usage.

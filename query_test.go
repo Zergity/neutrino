@@ -16,9 +16,9 @@ import (
 	"github.com/endurio/ndrd/chaincfg"
 	"github.com/endurio/ndrd/chaincfg/chainhash"
 	"github.com/endurio/ndrd/wire"
-	"github.com/endurio/ndrd/util"
-	"github.com/endurio/ndrd/util/gcs"
-	"github.com/endurio/ndrd/util/gcs/builder"
+	"github.com/endurio/ndrd/chainutil"
+	"github.com/endurio/ndrd/chainutil/gcs"
+	"github.com/endurio/ndrd/chainutil/gcs/builder"
 	"github.com/endurio/neutrino/cache"
 	"github.com/endurio/neutrino/cache/lru"
 	"github.com/endurio/neutrino/filterdb"
@@ -44,7 +44,7 @@ var (
 //
 // NOTE: copied from endurio/ndrd/database/ffldb/interface_test.go
 func loadBlocks(t *testing.T, dataFile string, network wire.BitcoinNet) (
-	[]*util.Block, error) {
+	[]*chainutil.Block, error) {
 	// Open the file that contains the blocks for reading.
 	fi, err := os.Open(dataFile)
 	if err != nil {
@@ -60,8 +60,8 @@ func loadBlocks(t *testing.T, dataFile string, network wire.BitcoinNet) (
 	dr := bzip2.NewReader(fi)
 
 	// Set the first block as the genesis block.
-	blocks := make([]*util.Block, 0, 256)
-	genesis := util.NewBlock(chaincfg.MainNetParams.GenesisBlock)
+	blocks := make([]*chainutil.Block, 0, 256)
+	genesis := chainutil.NewBlock(chaincfg.MainNetParams.GenesisBlock)
 	blocks = append(blocks, genesis)
 
 	// Load the remaining blocks.
@@ -100,7 +100,7 @@ func loadBlocks(t *testing.T, dataFile string, network wire.BitcoinNet) (
 		}
 
 		// Deserialize and store the block.
-		block, err := util.NewBlockFromBytes(blockBytes)
+		block, err := chainutil.NewBlockFromBytes(blockBytes)
 		if err != nil {
 			t.Errorf("Failed to parse block %v: %v", height, err)
 			return nil, err

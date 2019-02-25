@@ -5,8 +5,8 @@ import (
 
 	"github.com/endurio/ndrd/chaincfg"
 	"github.com/endurio/ndrd/chaincfg/chainhash"
-	"github.com/endurio/ndrd/util/gcs"
-	"github.com/endurio/ndrd/util/gcs/builder"
+	"github.com/endurio/ndrd/chainutil/gcs"
+	"github.com/endurio/ndrd/chainutil/gcs/builder"
 	"github.com/endurio/ndrw/walletdb"
 )
 
